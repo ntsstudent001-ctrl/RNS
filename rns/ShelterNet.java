@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class ShelterNet {
 
-    
+    // ---------------- DATA MODEL ----------------
     static class HelpRequest {
         String name;
         String urgency;
@@ -52,7 +52,6 @@ public class ShelterNet {
     static ArrayList<HelpRequest> requests = new ArrayList<>();
     static JLabel disasterLabel;
 
-   
     public static void main(String[] args) {
         SwingUtilities.invokeLater(ShelterNet::createHome);
     }
@@ -103,7 +102,10 @@ public class ShelterNet {
         bg.add(wrap, BorderLayout.CENTER);
 
         help.addActionListener(e -> helpForm());
-        vol.addActionListener(e -> volunteerDashboard());
+
+        // 🔐 CHANGED: now opens login first
+        vol.addActionListener(e -> volunteerLogin());
+
         don.addActionListener(e -> donationDesk());
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -118,7 +120,45 @@ public class ShelterNet {
         b.setBorderPainted(false);
     }
 
- 
+    // 🔐 LOGIN METHOD ADDED
+    public static void volunteerLogin() {
+        JFrame loginFrame = new JFrame("Volunteer Login");
+        loginFrame.setSize(300, 200);
+        loginFrame.setLayout(new GridLayout(3,2,5,5));
+
+        JTextField userField = new JTextField();
+        JPasswordField passField = new JPasswordField();
+
+        JButton loginBtn = new JButton("Login");
+        style(loginBtn, new Color(70, 130, 180));
+
+        loginFrame.add(new JLabel("ID:"));
+        loginFrame.add(userField);
+
+        loginFrame.add(new JLabel("Password:"));
+        loginFrame.add(passField);
+
+        loginFrame.add(new JLabel(""));
+        loginFrame.add(loginBtn);
+
+        loginBtn.addActionListener(e -> {
+            String id = userField.getText();
+            String pass = new String(passField.getPassword());
+
+            // ID = anything (not empty)
+            // Password = exactly 5 digits
+            if (!id.isEmpty() && pass.matches("\\d{5}")) {
+                JOptionPane.showMessageDialog(loginFrame, "Login Successful!");
+                loginFrame.dispose();
+                volunteerDashboard();
+            } else {
+                JOptionPane.showMessageDialog(loginFrame, "Invalid ID or Password (5-digit required)");
+            }
+        });
+
+        loginFrame.setVisible(true);
+    }
+
     public static void helpForm() {
         JFrame f = new JFrame("Request Help");
         f.setSize(400, 400);
@@ -190,7 +230,6 @@ public class ShelterNet {
                     BorderFactory.createEmptyBorder(10,10,10,10)
             ));
 
-           
             if (r.urgency.equals("HIGH")) card.setBackground(new Color(255, 200, 200));
             else if (r.urgency.equals("MEDIUM")) card.setBackground(new Color(255, 235, 180));
             else card.setBackground(new Color(200, 255, 200));
@@ -249,7 +288,7 @@ public class ShelterNet {
             card.add(shelter);
 
             container.add(card);
-            container.add(Box.createRigidArea(new Dimension(0,10))); // spacing between cards
+            container.add(Box.createRigidArea(new Dimension(0,10)));
         }
 
         JScrollPane scroll = new JScrollPane(container);
