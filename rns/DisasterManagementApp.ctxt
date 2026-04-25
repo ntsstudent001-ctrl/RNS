@@ -1,0 +1,21 @@
+#BlueJ class context
+comment0.target=DisasterManagementApp
+comment1.params=
+comment1.target=DisasterManagementApp()
+comment2.params=
+comment2.target=javax.swing.JPanel\ createSOSPanel()
+comment3.params=
+comment3.target=javax.swing.JPanel\ createReportPanel()
+comment4.params=
+comment4.target=javax.swing.JPanel\ createDashboardPanel()
+comment5.params=i
+comment5.target=void\ addIncident(DisasterManagementApp.Incident)
+comment6.params=
+comment6.target=void\ refreshTable()
+comment7.params=
+comment7.target=void\ saveData()
+comment8.params=
+comment8.target=void\ loadData()
+comment9.params=args
+comment9.target=void\ main(java.lang.String[])
+numComments=10
