@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class ShelterNet {
 
-    // ---------------- DATA MODEL ----------------
+    
     static class HelpRequest {
         String name;
         String urgency;
@@ -52,12 +52,11 @@ public class ShelterNet {
     static ArrayList<HelpRequest> requests = new ArrayList<>();
     static JLabel disasterLabel;
 
-    // ---------------- MAIN ----------------
+   
     public static void main(String[] args) {
         SwingUtilities.invokeLater(ShelterNet::createHome);
     }
 
-    // ---------------- HOME ----------------
     public static void createHome() {
         JFrame frame = new JFrame("Shelter Net");
         frame.setSize(650, 450);
@@ -119,7 +118,7 @@ public class ShelterNet {
         b.setBorderPainted(false);
     }
 
-    // ---------------- HELP FORM ----------------
+ 
     public static void helpForm() {
         JFrame f = new JFrame("Request Help");
         f.setSize(400, 400);
@@ -172,7 +171,6 @@ public class ShelterNet {
         f.setVisible(true);
     }
 
-    // ---------------- VOLUNTEER DASHBOARD (FIXED + COMPLETE) ----------------
     public static void volunteerDashboard() {
         JFrame frame = new JFrame("Volunteer Dashboard");
         frame.setSize(700, 600);
@@ -192,7 +190,7 @@ public class ShelterNet {
                     BorderFactory.createEmptyBorder(10,10,10,10)
             ));
 
-            // color based on urgency
+           
             if (r.urgency.equals("HIGH")) card.setBackground(new Color(255, 200, 200));
             else if (r.urgency.equals("MEDIUM")) card.setBackground(new Color(255, 235, 180));
             else card.setBackground(new Color(200, 255, 200));
@@ -260,7 +258,6 @@ public class ShelterNet {
         frame.setVisible(true);
     }
 
-    // ---------------- DONATION DESK ----------------
     public static void donationDesk() {
         JFrame f = new JFrame("Donation Desk");
         f.setSize(400,300);
