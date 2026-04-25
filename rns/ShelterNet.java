@@ -1,398 +1,298 @@
 import javax.swing.*;
 import java.awt.*;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.awt.event.*;
+import java.util.ArrayList;
 
-public class ShelterNet extends JFrame {
+public class ShelterNet {
 
-    static java.util.List<Request> requests = new ArrayList<>();
+    // ---------------- DATA MODEL ----------------
+    static class HelpRequest {
+        String name;
+        String urgency;
+        String location;
+        boolean food, medical, rescue, shelter;
+        String status = "PENDING";
 
-    CardLayout cl = new CardLayout();
-    JPanel root = new JPanel(cl);
+        boolean foodDone = false;
+        boolean medicalDone = false;
+        boolean rescueDone = false;
+        boolean shelterDone = false;
 
-    JLabel warningText = new JLabel("CLEAR OF DISASTERS. HAVE A NICE DAY", SwingConstants.CENTER);
+        HelpRequest(String name, String urgency, String location,
+                    boolean food, boolean medical, boolean rescue, boolean shelter) {
+            this.name = name;
+            this.urgency = urgency;
+            this.location = location;
+            this.food = food;
+            this.medical = medical;
+            this.rescue = rescue;
+            this.shelter = shelter;
+        }
 
-    boolean loggedIn = false;
+        boolean isCompleted() {
+            if (food && !foodDone) return false;
+            if (medical && !medicalDone) return false;
+            if (rescue && !rescueDone) return false;
+            if (shelter && !shelterDone) return false;
+            return true;
+        }
 
-    Color bg = new Color(15, 15, 20);
-    Color card = new Color(30, 30, 40);
-    Color accent = new Color(0, 200, 180);
+        int progressValue() {
+            int total = 0, done = 0;
 
-    public ShelterNet() {
+            if (food) { total++; if (foodDone) done++; }
+            if (medical) { total++; if (medicalDone) done++; }
+            if (rescue) { total++; if (rescueDone) done++; }
+            if (shelter) { total++; if (shelterDone) done++; }
 
-        setTitle("Shelter Net");
-        setSize(1200, 750);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-
-        
-
-        root.add(home(), "home");
-        root.add(help(), "help");
-        root.add(login(), "login");
-        root.add(donation(), "donation");
-        root.add(warning(), "warning");
-
-        add(root);
-        cl.show(root, "home");
-
-        setVisible(true);
+            return total == 0 ? 0 : (done * 100 / total);
+        }
     }
 
-    // ================= HOME =================
-    JPanel home() {
+    static ArrayList<HelpRequest> requests = new ArrayList<>();
+    static JLabel disasterLabel;
 
-        JPanel p = new JPanel(new BorderLayout());
-        p.setBackground(bg);
-
-        JLabel title = new JLabel("SHELTER NET", SwingConstants.CENTER);
-        title.setFont(new Font("Serif", Font.BOLD, 54));
-        title.setForeground(Color.WHITE);
-
-        JLabel tag = new JLabel("Humanity in Action", SwingConstants.CENTER);
-        tag.setFont(new Font("Serif", Font.ITALIC, 24));
-        tag.setForeground(Color.LIGHT_GRAY);
-
-        JPanel top = new JPanel(new GridLayout(2,1));
-        top.setBackground(bg);
-        top.add(title);
-        top.add(tag);
-
-        JPanel side = new JPanel(new BorderLayout());
-        side.setPreferredSize(new Dimension(320, 0));
-        side.setBackground(new Color(25,25,25));
-
-        warningText.setFont(new Font("Serif", Font.BOLD, 16));
-        warningText.setForeground(Color.WHITE);
-
-        side.add(warningText, BorderLayout.CENTER);
-
-        JButton b1 = btn("REQUEST HELP");
-        JButton b2 = btn("VOLUNTEER DASHBOARD");
-        JButton b3 = btn("DONATION DESK");
-        JButton b4 = btn("WARNING SYSTEM");
-
-        b1.addActionListener(e -> cl.show(root, "help"));
-        b2.addActionListener(e -> cl.show(root, "login"));
-        b3.addActionListener(e -> cl.show(root, "donation"));
-        b4.addActionListener(e -> {
-            if (!loggedIn) {
-                JOptionPane.showMessageDialog(this, "Login required");
-                cl.show(root, "login");
-            } else cl.show(root, "warning");
-        });
-
-        JPanel buttons = new JPanel();
-        buttons.setBackground(bg);
-        buttons.add(b1); buttons.add(b2); buttons.add(b3); buttons.add(b4);
-
-        p.add(top, BorderLayout.NORTH);
-        p.add(buttons, BorderLayout.CENTER);
-        p.add(side, BorderLayout.EAST);
-
-        return p;
+    // ---------------- MAIN ----------------
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(ShelterNet::createHome);
     }
 
-    // ================= HELP (UNCHANGED CORE) =================
-    JPanel help() {
-        JPanel p = new JPanel(new GridLayout(12,1));
-        p.setBackground(bg);
+    // ---------------- HOME ----------------
+    public static void createHome() {
+        JFrame frame = new JFrame("Shelter Net");
+        frame.setSize(650, 450);
+        frame.setLayout(new BorderLayout());
+
+        JPanel bg = new JPanel(new BorderLayout());
+        bg.setBackground(new Color(230, 240, 250));
+        frame.setContentPane(bg);
+
+        JLabel title = new JLabel("SHELTER NET", JLabel.CENTER);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 36));
+        title.setForeground(new Color(20, 60, 120));
+        bg.add(title, BorderLayout.NORTH);
+
+        disasterLabel = new JLabel("  STATUS: NORMAL  ");
+        disasterLabel.setOpaque(true);
+        disasterLabel.setBackground(new Color(144, 238, 144));
+        disasterLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+
+        JPanel status = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        status.setBackground(new Color(210, 230, 245));
+        status.add(disasterLabel);
+        bg.add(status, BorderLayout.SOUTH);
+
+        JPanel center = new JPanel(new GridLayout(3,1,15,15));
+        center.setBackground(new Color(230, 240, 250));
+
+        JButton help = new JButton("🚨 Request Help");
+        JButton vol = new JButton("🧑‍🚒 Volunteer Dashboard");
+        JButton don = new JButton("🎁 Donation Desk");
+
+        style(help, new Color(255, 99, 71));
+        style(vol, new Color(70, 130, 180));
+        style(don, new Color(46, 139, 87));
+
+        center.add(help);
+        center.add(vol);
+        center.add(don);
+
+        JPanel wrap = new JPanel(new GridBagLayout());
+        wrap.setBackground(new Color(230, 240, 250));
+        wrap.add(center);
+
+        bg.add(wrap, BorderLayout.CENTER);
+
+        help.addActionListener(e -> helpForm());
+        vol.addActionListener(e -> volunteerDashboard());
+        don.addActionListener(e -> donationDesk());
+
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+    }
+
+    public static void style(JButton b, Color c) {
+        b.setBackground(c);
+        b.setForeground(Color.WHITE);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        b.setFocusPainted(false);
+        b.setBorderPainted(false);
+    }
+
+    // ---------------- HELP FORM ----------------
+    public static void helpForm() {
+        JFrame f = new JFrame("Request Help");
+        f.setSize(400, 400);
+        f.setLayout(new GridLayout(8,2,5,5));
 
         JTextField name = new JTextField();
         JTextField loc = new JTextField();
 
-        JCheckBox anon = new JCheckBox("Anonymous");
+        String[] urgency = {"LOW", "MEDIUM", "HIGH"};
+        JComboBox<String> urg = new JComboBox<>(urgency);
 
         JCheckBox food = new JCheckBox("Food");
-        JCheckBox med = new JCheckBox("Medical");
+        JCheckBox medical = new JCheckBox("Medical");
         JCheckBox rescue = new JCheckBox("Rescue");
         JCheckBox shelter = new JCheckBox("Shelter");
 
-        final String[] urgency = {""};
+        JButton submit = new JButton("Submit");
+        style(submit, new Color(46, 139, 87));
 
-        JButton g = urgencyBtn("GREEN", Color.GREEN, urgency, "LOW");
-        JButton y = urgencyBtn("YELLOW", Color.YELLOW, urgency, "MEDIUM");
-        JButton r = urgencyBtn("RED", Color.RED, urgency, "HIGH");
+        f.add(new JLabel("Name:")); f.add(name);
+        f.add(new JLabel("Urgency:")); f.add(urg);
+        f.add(new JLabel("Location:")); f.add(loc);
 
-        JButton submit = btn("SUBMIT REQUEST");
+        f.add(food); f.add(medical);
+        f.add(rescue); f.add(shelter);
 
-        JLabel err = new JLabel("", SwingConstants.CENTER);
-        err.setForeground(Color.RED);
-
-        p.add(label("Name"));
-        p.add(name);
-        p.add(anon);
-
-        p.add(label("Location *"));
-        p.add(loc);
-
-        p.add(label("Help Type *"));
-        JPanel hp = new JPanel();
-        hp.setBackground(bg);
-        hp.add(food); hp.add(med); hp.add(rescue); hp.add(shelter);
-        p.add(hp);
-
-        p.add(label("Urgency *"));
-        JPanel up = new JPanel();
-        up.setBackground(bg);
-        up.add(g); up.add(y); up.add(r);
-        p.add(up);
-
-        p.add(err);
-        p.add(submit);
+        f.add(new JLabel("")); f.add(submit);
 
         submit.addActionListener(e -> {
-
-            if (loc.getText().isEmpty() || urgency[0].isEmpty()
-                    || (!food.isSelected() && !med.isSelected()
-                    && !rescue.isSelected() && !shelter.isSelected())) {
-                err.setText("*needs to be filled");
+            if (loc.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(f, "Location required!");
                 return;
             }
 
-            String n = anon.isSelected() ? "Anonymous" : name.getText();
-
-            String type = "";
-            if (food.isSelected()) type += "Food ";
-            if (med.isSelected()) type += "Medical ";
-            if (rescue.isSelected()) type += "Rescue ";
-            if (shelter.isSelected()) type += "Shelter ";
-
-            String time = new SimpleDateFormat("HH:mm:ss").format(new Date());
-
-            requests.add(new Request(n, loc.getText(), type, urgency[0], "Pending", time));
-
-            JOptionPane.showMessageDialog(this, "Request submitted!");
-
-            cl.show(root, "home");
-        });
-
-        return p;
-    }
-
-    // ================= LOGIN =================
-    JPanel login() {
-        JPanel p = new JPanel(new GridLayout(4,1));
-        p.setBackground(bg);
-
-        JTextField id = new JTextField();
-        JPasswordField pass = new JPasswordField();
-
-        JButton login = btn("LOGIN");
-
-        p.add(label("ID"));
-        p.add(id);
-        p.add(label("Password (5 digits)"));
-        p.add(pass);
-        p.add(login);
-
-        login.addActionListener(e -> {
-            if (!new String(pass.getPassword()).matches("\\d{5}")) {
-                JOptionPane.showMessageDialog(this, "Invalid login");
-                return;
-            }
-
-            loggedIn = true;
-            dashboard();
-        });
-
-        return p;
-    }
-
-    // ================= DASHBOARD =================
-    void dashboard() {
-
-        JPanel dash = new JPanel();
-        dash.setLayout(new BoxLayout(dash, BoxLayout.Y_AXIS));
-        dash.setBackground(bg);
-
-        for (Request r : requests) {
-
-            JPanel c = new JPanel(new GridLayout(5,1));
-            c.setBackground(card);
-
-            JLabel info = new JLabel(
-                    "<html><font color='white'>"
-                            + "Name: " + r.name + "<br>"
-                            + "Location: " + r.location + "<br>"
-                            + "Help: " + r.type + "<br>"
-                            + "Urgency: " + r.urgency + "<br>"
-                            + "Status: " + r.status
-                            + "</font></html>"
+            HelpRequest r = new HelpRequest(
+                    name.getText().isEmpty() ? "Anonymous" : name.getText(),
+                    (String) urg.getSelectedItem(),
+                    loc.getText(),
+                    food.isSelected(),
+                    medical.isSelected(),
+                    rescue.isSelected(),
+                    shelter.isSelected()
             );
 
-            JButton accept = btn("ACCEPT");
-
-            accept.addActionListener(e -> {
-                r.status = "Accepted";
-                taskWindow(r);
-                dashboard();
-            });
-
-            c.add(info);
-            c.add(accept);
-            dash.add(c);
-        }
-
-        JScrollPane sp = new JScrollPane(dash);
-        JPanel wrap = new JPanel(new BorderLayout());
-        wrap.add(sp, BorderLayout.CENTER);
-
-        root.add(wrap, "dash");
-        cl.show(root, "dash");
-    }
-
-    // ================= TASK =================
-    void taskWindow(Request r) {
-
-        JFrame f = new JFrame("Task");
-        f.setSize(400,300);
-
-        JCheckBox f1 = new JCheckBox("Food");
-        JCheckBox f2 = new JCheckBox("Medical");
-        JCheckBox f3 = new JCheckBox("Rescue");
-        JCheckBox f4 = new JCheckBox("Shelter");
-
-        JButton done = new JButton("FINISH");
-
-        JLabel msg = new JLabel("", SwingConstants.CENTER);
-
-        JPanel p = new JPanel(new GridLayout(6,1));
-
-        p.add(f1);p.add(f2);p.add(f3);p.add(f4);
-        p.add(done);p.add(msg);
-
-        done.addActionListener(e -> {
-
-            if (f1.isSelected() && f2.isSelected()
-                    && f3.isSelected() && f4.isSelected()) {
-
-                r.status = "Completed";
-                msg.setText("COMPLETED");
-                f.dispose();
-                dashboard();
-
-            } else {
-                r.status = "Helped";
-                msg.setText("HELPED");
-            }
+            requests.add(r);
+            JOptionPane.showMessageDialog(f, "Request submitted!");
+            f.dispose();
         });
 
-        f.add(p);
         f.setVisible(true);
     }
 
-    // ================= DONATION (FIXED) =================
-    JPanel donation() {
+    // ---------------- VOLUNTEER DASHBOARD (FIXED + COMPLETE) ----------------
+    public static void volunteerDashboard() {
+        JFrame frame = new JFrame("Volunteer Dashboard");
+        frame.setSize(700, 600);
 
-        JPanel p = new JPanel(new GridLayout(6,1));
-        p.setBackground(bg);
+        JPanel container = new JPanel();
+        container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
+        container.setBackground(new Color(235, 245, 255));
 
-        JTextField name = new JTextField();
-        JTextField loc = new JTextField();
+        for (int i = 0; i < requests.size(); i++) {
 
-        JButton food = btn("DONATE FOOD");
-        JButton cloth = btn("DONATE CLOTHES");
+            HelpRequest r = requests.get(i);
 
-        JButton submit = btn("SUBMIT");
+            JPanel card = new JPanel();
+            card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+            card.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Color.GRAY),
+                    BorderFactory.createEmptyBorder(10,10,10,10)
+            ));
 
-        JLabel msg = new JLabel("",SwingConstants.CENTER);
-        msg.setForeground(Color.WHITE);
+            // color based on urgency
+            if (r.urgency.equals("HIGH")) card.setBackground(new Color(255, 200, 200));
+            else if (r.urgency.equals("MEDIUM")) card.setBackground(new Color(255, 235, 180));
+            else card.setBackground(new Color(200, 255, 200));
 
-        boolean[] selected = {false};
+            JLabel header = new JLabel("ID #" + (i+1) + " - " + r.name);
+            JLabel loc = new JLabel("📍 " + r.location);
+            JLabel status = new JLabel("Status: " + r.status);
 
-        food.addActionListener(e -> selected[0] = true);
-        cloth.addActionListener(e -> selected[0] = true);
+            JProgressBar bar = new JProgressBar(0,100);
+            bar.setValue(r.progressValue());
+            bar.setStringPainted(true);
 
-        p.add(label("Name"));
-        p.add(name);
-        p.add(label("Pickup Location"));
-        p.add(loc);
-        p.add(food);
-        p.add(cloth);
-        p.add(submit);
-        p.add(msg);
+            JCheckBox food = new JCheckBox("Food");
+            JCheckBox medical = new JCheckBox("Medical");
+            JCheckBox rescue = new JCheckBox("Rescue");
+            JCheckBox shelter = new JCheckBox("Shelter");
 
-        submit.addActionListener(e -> {
+            food.setSelected(r.foodDone);
+            medical.setSelected(r.medicalDone);
+            rescue.setSelected(r.rescueDone);
+            shelter.setSelected(r.shelterDone);
 
-            if (!selected[0]) {
-                msg.setText("*Select donation type");
-                return;
-            }
+            food.setEnabled(r.food);
+            medical.setEnabled(r.medical);
+            rescue.setEnabled(r.rescue);
+            shelter.setEnabled(r.shelter);
 
-            if (loc.getText().isEmpty()) {
-                msg.setText("*Pickup required");
-                return;
-            }
+            ActionListener update = e -> {
+                r.foodDone = food.isSelected();
+                r.medicalDone = medical.isSelected();
+                r.rescueDone = rescue.isSelected();
+                r.shelterDone = shelter.isSelected();
 
-            JOptionPane.showMessageDialog(this,
-                    "Our volunteers are on the way. Thank you for your kindness.");
+                bar.setValue(r.progressValue());
 
-            cl.show(root,"home");
-        });
+                if (r.isCompleted()) {
+                    r.status = "COMPLETED";
+                    status.setText("Status: COMPLETED");
+                }
+            };
 
-        return p;
-    }
+            food.addActionListener(update);
+            medical.addActionListener(update);
+            rescue.addActionListener(update);
+            shelter.addActionListener(update);
 
-    // ================= WARNING (FIXED) =================
-    JPanel warning() {
+            header.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
-        JPanel p = new JPanel(new GridLayout(5,1));
+            card.add(header);
+            card.add(loc);
+            card.add(status);
+            card.add(bar);
+            card.add(food);
+            card.add(medical);
+            card.add(rescue);
+            card.add(shelter);
 
-        JTextField name = new JTextField();
-        JTextField time = new JTextField();
-
-        JButton submit = btn("ISSUE WARNING");
-
-        p.add(label("Disaster Name"));
-        p.add(name);
-        p.add(label("Time (Days/Hours)"));
-        p.add(time);
-        p.add(submit);
-
-        submit.addActionListener(e -> {
-
-            String msg = "ALERT! " + name.getText() + " will hit in " + time.getText();
-            warningText.setText(msg);
-
-            JOptionPane.showMessageDialog(this, "Warning Issued");
-
-            cl.show(root,"home");
-        });
-
-        return p;
-    }
-
-    // ================= HELPERS =================
-    JButton btn(String t){
-        JButton b=new JButton(t);
-        b.setFont(new Font("Serif",Font.BOLD,14));
-        b.setBackground(accent);
-        return b;
-    }
-
-    JButton urgencyBtn(String t,Color c,String[]u,String v){
-        JButton b=new JButton(t);
-        b.setBackground(c);
-        b.addActionListener(e->u[0]=v);
-        return b;
-    }
-
-    JLabel label(String t){
-        JLabel l=new JLabel(t);
-        l.setForeground(Color.WHITE);
-        l.setFont(new Font("Serif",Font.BOLD,16));
-        return l;
-    }
-
-    public static void main(String[] args){
-        new ShelterNet();
-    }
-
-    static class Request{
-        String name,location,type,urgency,status,time;
-        Request(String a,String b,String c,String d,String e,String f){
-            name=a;location=b;type=c;urgency=d;status=e;time=f;
+            container.add(card);
+            container.add(Box.createRigidArea(new Dimension(0,10))); // spacing between cards
         }
+
+        JScrollPane scroll = new JScrollPane(container);
+        frame.add(scroll);
+
+        frame.setVisible(true);
+    }
+
+    // ---------------- DONATION DESK ----------------
+    public static void donationDesk() {
+        JFrame f = new JFrame("Donation Desk");
+        f.setSize(400,300);
+        f.setLayout(new GridLayout(6,2));
+
+        JTextField name = new JTextField();
+        JTextField id = new JTextField();
+
+        JCheckBox food = new JCheckBox("Food");
+        JCheckBox clothes = new JCheckBox("Clothes");
+        JCheckBox shelter = new JCheckBox("Shelter");
+
+        JButton donate = new JButton("Donate");
+        style(donate, new Color(46, 139, 87));
+
+        f.add(new JLabel("Name:")); f.add(name);
+        f.add(new JLabel("ID:")); f.add(id);
+
+        f.add(food); f.add(clothes); f.add(shelter);
+
+        f.add(new JLabel("")); f.add(donate);
+
+        donate.addActionListener(e -> {
+            if (name.getText().isEmpty() || id.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(f, "ID required!");
+                return;
+            }
+
+            JOptionPane.showMessageDialog(f, "Donation registered!");
+            f.dispose();
+        });
+
+        f.setVisible(true);
     }
 }
