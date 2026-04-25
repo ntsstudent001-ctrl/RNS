@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class ShelterNet {
 
-    // ---------------- DATA MODEL ----------------
+  
     static class HelpRequest {
         String name;
         String urgency;
@@ -103,7 +103,7 @@ public class ShelterNet {
 
         help.addActionListener(e -> helpForm());
 
-        // 🔐 CHANGED: now opens login first
+        
         vol.addActionListener(e -> volunteerLogin());
 
         don.addActionListener(e -> donationDesk());
@@ -120,7 +120,7 @@ public class ShelterNet {
         b.setBorderPainted(false);
     }
 
-    // 🔐 LOGIN METHOD ADDED
+   
     public static void volunteerLogin() {
         JFrame loginFrame = new JFrame("Volunteer Login");
         loginFrame.setSize(300, 200);
