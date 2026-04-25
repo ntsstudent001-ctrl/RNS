@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class ShelterNet {
 
-  
+    
     static class HelpRequest {
         String name;
         String urgency;
@@ -56,6 +56,7 @@ public class ShelterNet {
         SwingUtilities.invokeLater(ShelterNet::createHome);
     }
 
+    
     public static void createHome() {
         JFrame frame = new JFrame("Shelter Net");
         frame.setSize(650, 450);
@@ -65,10 +66,28 @@ public class ShelterNet {
         bg.setBackground(new Color(230, 240, 250));
         frame.setContentPane(bg);
 
+        // 🔥 TITLE PANEL (Title + Tagline)
+        JPanel titlePanel = new JPanel();
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
+        titlePanel.setBackground(new Color(230, 240, 250));
+
         JLabel title = new JLabel("SHELTER NET", JLabel.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 36));
         title.setForeground(new Color(20, 60, 120));
-        bg.add(title, BorderLayout.NORTH);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel tagline = new JLabel("Humanity in Action", JLabel.CENTER);
+        tagline.setFont(new Font("Segoe UI", Font.ITALIC, 16));
+        tagline.setForeground(new Color(80, 80, 80));
+        tagline.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        titlePanel.add(Box.createVerticalStrut(10));
+        titlePanel.add(title);
+        titlePanel.add(Box.createVerticalStrut(5));
+        titlePanel.add(tagline);
+        titlePanel.add(Box.createVerticalStrut(10));
+
+        bg.add(titlePanel, BorderLayout.NORTH);
 
         disasterLabel = new JLabel("  STATUS: NORMAL  ");
         disasterLabel.setOpaque(true);
@@ -102,10 +121,7 @@ public class ShelterNet {
         bg.add(wrap, BorderLayout.CENTER);
 
         help.addActionListener(e -> helpForm());
-
-        
         vol.addActionListener(e -> volunteerLogin());
-
         don.addActionListener(e -> donationDesk());
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -120,7 +136,7 @@ public class ShelterNet {
         b.setBorderPainted(false);
     }
 
-   
+
     public static void volunteerLogin() {
         JFrame loginFrame = new JFrame("Volunteer Login");
         loginFrame.setSize(300, 200);
@@ -145,8 +161,6 @@ public class ShelterNet {
             String id = userField.getText();
             String pass = new String(passField.getPassword());
 
-            // ID = anything (not empty)
-            // Password = exactly 5 digits
             if (!id.isEmpty() && pass.matches("\\d{5}")) {
                 JOptionPane.showMessageDialog(loginFrame, "Login Successful!");
                 loginFrame.dispose();
@@ -159,6 +173,34 @@ public class ShelterNet {
         loginFrame.setVisible(true);
     }
 
+
+    static class UrgencyRenderer extends DefaultListCellRenderer {
+        @Override
+        public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                      int index, boolean isSelected,
+                                                      boolean cellHasFocus) {
+
+            Component c = super.getListCellRendererComponent(
+                    list, value, index, isSelected, cellHasFocus);
+
+            String val = value.toString();
+
+            if (val.equals("LOW")) {
+                c.setBackground(new Color(144, 238, 144));
+            } else if (val.equals("MEDIUM")) {
+                c.setBackground(new Color(255, 235, 140));
+            } else if (val.equals("HIGH")) {
+                c.setBackground(new Color(255, 120, 120));
+            }
+
+            if (isSelected) {
+                c.setBackground(c.getBackground().darker());
+            }
+
+            return c;
+        }
+    }
+
     public static void helpForm() {
         JFrame f = new JFrame("Request Help");
         f.setSize(400, 400);
@@ -169,6 +211,8 @@ public class ShelterNet {
 
         String[] urgency = {"LOW", "MEDIUM", "HIGH"};
         JComboBox<String> urg = new JComboBox<>(urgency);
+        urg.setRenderer(new UrgencyRenderer());
+        urg.setOpaque(true);
 
         JCheckBox food = new JCheckBox("Food");
         JCheckBox medical = new JCheckBox("Medical");
@@ -297,6 +341,7 @@ public class ShelterNet {
         frame.setVisible(true);
     }
 
+  
     public static void donationDesk() {
         JFrame f = new JFrame("Donation Desk");
         f.setSize(400,300);
